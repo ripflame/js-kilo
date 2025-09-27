@@ -2,8 +2,9 @@
   "name": "JS Kilo",
   "version": "1.0.0",
   "description": "Recreating the Kilo text editor in JavaScript",
-  "main": "index.js",
+  "main": "kilo.js",
   "scripts": {
+    "start": "node kilo.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["kilo", "text", "editor"],
