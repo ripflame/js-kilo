@@ -121,19 +121,19 @@ function editorRefreshScreen() {
 /*** input ***/
 
 const editorProcessKeypress = {
-  17: () => {
+  17: () => { // ctrl+q
     exit(0);
   },
-  97: () => {
+  97: () => { // a
     E.cx--;
   },
-  100: () => {
+  100: () => { // d
     E.cx++;
   },
-  119: () => {
+  119: () => { // w
     E.cy--;
   },
-  115: () => {
+  115: () => { // s
     E.cy++;
   },
 };
