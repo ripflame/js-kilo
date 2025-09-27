@@ -1,6 +1,6 @@
 {
   "name": "JS Kilo",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Recreating the Kilo text editor in JavaScript",
   "main": "kilo.js",
   "scripts": {
