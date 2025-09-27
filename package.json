@@ -7,7 +7,11 @@
     "start": "node kilo.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["kilo", "text", "editor"],
+  "keywords": [
+    "kilo",
+    "text",
+    "editor"
+  ],
   "author": "Ripflame",
   "license": "ISC",
   "type": "module"
