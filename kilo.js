@@ -4,6 +4,11 @@ import fs from "node:fs";
 /****************/
 
 /*** defines ***/
+const ERASE_IN_DISPLAY = "\x1b[2J";
+const ERASE_IN_LINE = "\x1b[2K";
+const CURSOR_POSITION = "\x1b[H";
+const HIDE_CURSOR = "\x1b[?25l";
+const SHOW_CURSOR = "\x1b[?25h";
 /***************/
 
 /*** data ***/
@@ -21,9 +26,8 @@ function getWindowSize() {
 }
 
 function cleanup() {
-  stdout.write("\x1b[2K");
-  stdout.write("\x1b[H");
-  stdout.write("\x1b[?25h");
+  const buffer = appendBuffer(ERASE_IN_LINE, CURSOR_POSITION, SHOW_CURSOR);
+  stdout.write(buffer);
   if (stdin.isTTY) stdin.setRawMode(false);
 }
 
@@ -56,6 +60,11 @@ process.on("unhandledRejection", () => {
 });
 /****************/
 
+/*** append buffer ***/
+function appendBuffer(...elements) {
+  return elements.join("");
+}
+/*********************/
 /*** output ***/
 function editorDrawRows() {
   const tildes = [];
@@ -69,10 +78,10 @@ function editorDrawRows() {
 }
 
 function editorRefreshScreen() {
-  stdout.write("\x1b[2J");
-  stdout.write("\x1b[H");
+  const buffer = appendBuffer(HIDE_CURSOR, ERASE_IN_DISPLAY, CURSOR_POSITION);
+  stdout.write(buffer);
   editorDrawRows();
-  stdout.write("\x1b[H");
+  stdout.write(CURSOR_POSITION, SHOW_CURSOR);
 }
 /**************/
 
