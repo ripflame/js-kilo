@@ -6,9 +6,11 @@ import fs from "node:fs";
 /*** defines ***/
 const ERASE_IN_DISPLAY = "\x1b[2J";
 const ERASE_IN_LINE = "\x1b[2K";
+const ERASE_IN_LINE_RIGHT = "\x1b[K";
 const CURSOR_POSITION = "\x1b[H";
 const HIDE_CURSOR = "\x1b[?25l";
 const SHOW_CURSOR = "\x1b[?25h";
+const KILO_VERSION = "0.0.1";
 /***************/
 
 /*** data ***/
@@ -66,10 +68,28 @@ function appendBuffer(...elements) {
 }
 /*********************/
 /*** output ***/
+
 function editorDrawRows() {
   const tildes = [];
   for (let i = 0; i < editorConfig.screenRows; i++) {
-    tildes.push("~");
+    if (i === Math.floor(editorConfig.screenRows / 3)) {
+      let welcome = `Kilo editor -- version ${KILO_VERSION}`;
+      if (welcome.length > editorConfig.screenCols) {
+        welcome = welcome.substring(0, editorConfig.screenCols);
+      }
+      let padding = Math.floor((editorConfig.screenCols - welcome.length) / 2);
+      if (padding) {
+        tildes.push("~");
+        padding--;
+      }
+      while (padding--) {
+        tildes.push(" ");
+      }
+      tildes.push(welcome);
+    } else {
+      tildes.push("~");
+    }
+    tildes.push(ERASE_IN_LINE_RIGHT);
     if (i < editorConfig.screenRows - 1) {
       tildes.push("\r\n");
     }
@@ -78,10 +98,11 @@ function editorDrawRows() {
 }
 
 function editorRefreshScreen() {
-  const buffer = appendBuffer(HIDE_CURSOR, ERASE_IN_DISPLAY, CURSOR_POSITION);
+  let buffer = appendBuffer(HIDE_CURSOR, CURSOR_POSITION);
   stdout.write(buffer);
   editorDrawRows();
-  stdout.write(CURSOR_POSITION, SHOW_CURSOR);
+  buffer = appendBuffer(CURSOR_POSITION, SHOW_CURSOR);
+  stdout.write(buffer);
 }
 /**************/
 
