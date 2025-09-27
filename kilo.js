@@ -1,9 +1,11 @@
 /*** includes ***/
+
 import { exit, stdin, stdout } from "node:process";
 import fs from "node:fs";
 /****************/
 
 /*** defines ***/
+
 const ERASE_IN_DISPLAY = "\x1b[2J";
 const ERASE_IN_LINE = "\x1b[2K";
 const ERASE_IN_LINE_RIGHT = "\x1b[K";
@@ -14,6 +16,7 @@ const KILO_VERSION = "0.0.1";
 /***************/
 
 /*** data ***/
+
 const E = {
   screenRows: 0,
   screenCols: 0,
@@ -23,6 +26,7 @@ const E = {
 /************/
 
 /*** terminal ***/
+
 function getWindowSize() {
   const windowSize = stdout.getWindowSize();
   E.screenCols = windowSize[0];
@@ -65,10 +69,12 @@ process.on("unhandledRejection", () => {
 /****************/
 
 /*** append buffer ***/
+
 function appendBuffer(...elements) {
   return elements.join("");
 }
 /*********************/
+
 /*** output ***/
 
 function editorDrawRows() {
@@ -100,27 +106,40 @@ function editorDrawRows() {
 }
 
 function editorRefreshScreen() {
-  let buffer = appendBuffer(HIDE_CURSOR, CURSOR_POSITION);
-  stdout.write(buffer);
+  stdout.write(HIDE_CURSOR);
 
   editorDrawRows();
 
-  const moveCursor = `\x1b[${E.cy+1};${E.cx+1}H`;
+  const moveCursor = `\x1b[${E.cy + 1};${E.cx + 1}H`;
 
-  buffer = appendBuffer(moveCursor, SHOW_CURSOR);
+  const buffer = appendBuffer(moveCursor, SHOW_CURSOR);
   stdout.write(buffer);
 }
 /**************/
 
 /*** input ***/
+
 const editorProcessKeypress = {
   17: () => {
     exit(0);
+  },
+  97: () => {
+    E.cx--;
+  },
+  100: () => {
+    E.cx++;
+  },
+  119: () => {
+    E.cy--;
+  },
+  115: () => {
+    E.cy++;
   },
 };
 /*************/
 
 /*** init ***/
+
 function initEditor() {
   getWindowSize();
 }
@@ -132,11 +151,11 @@ function main() {
   }
 
   stdin.on("data", (data) => {
-    editorRefreshScreen();
     if (data.length === 1) {
       (editorProcessKeypress[data[0]] || (() => {}))();
     } else {
     }
+    editorRefreshScreen();
   });
 
   initEditor();
