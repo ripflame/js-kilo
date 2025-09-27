@@ -1,11 +1,15 @@
 import { exit, stdin, stdout } from "node:process";
-import { inspect } from "node:util";
 
 const editorProcessKeypress = {
   17: () => {
     exit(0);
   },
 };
+
+function editorRefreshScreen() {
+  stdout.write("\x1b[2J", "utf8");
+  stdout.write("\x1b[H", "utf8");
+}
 
 function main() {
   if (!stdin.isTTY) {
@@ -14,6 +18,7 @@ function main() {
   }
 
   stdin.on("data", (data) => {
+    editorRefreshScreen();
     if (data.length === 1) {
       (editorProcessKeypress[data[0]] || (() => {}))();
     } else {
