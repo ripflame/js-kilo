@@ -121,20 +121,20 @@ function editorRefreshScreen() {
 /*** input ***/
 
 const editorProcessKeypress = {
-  17: () => { // ctrl+q
-    exit(0);
+  17: () => {
+    exit(0); // ctrl+q
   },
-  97: () => { // a
-    E.cx--;
+  97: () => {
+    if (E.cx > 0) E.cx--; // a
   },
-  100: () => { // d
-    E.cx++;
+  100: () => {
+    if (E.cx < E.screenCols - 1) E.cx++; // d
   },
-  119: () => { // w
-    E.cy--;
+  119: () => {
+    if (E.cy > 0) E.cy--; // w
   },
-  115: () => { // s
-    E.cy++;
+  115: () => {
+    if (E.cy < E.screenRows - 1) E.cy++; // s
   },
 };
 /*************/
