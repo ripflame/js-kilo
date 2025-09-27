@@ -14,17 +14,19 @@ const KILO_VERSION = "0.0.1";
 /***************/
 
 /*** data ***/
-const editorConfig = {
+const E = {
   screenRows: 0,
   screenCols: 0,
+  cx: 0,
+  cy: 0,
 };
 /************/
 
 /*** terminal ***/
 function getWindowSize() {
   const windowSize = stdout.getWindowSize();
-  editorConfig.screenCols = windowSize[0];
-  editorConfig.screenRows = windowSize[1];
+  E.screenCols = windowSize[0];
+  E.screenRows = windowSize[1];
 }
 
 function cleanup() {
@@ -71,13 +73,13 @@ function appendBuffer(...elements) {
 
 function editorDrawRows() {
   const tildes = [];
-  for (let i = 0; i < editorConfig.screenRows; i++) {
-    if (i === Math.floor(editorConfig.screenRows / 3)) {
+  for (let i = 0; i < E.screenRows; i++) {
+    if (i === Math.floor(E.screenRows / 3)) {
       let welcome = `Kilo editor -- version ${KILO_VERSION}`;
-      if (welcome.length > editorConfig.screenCols) {
-        welcome = welcome.substring(0, editorConfig.screenCols);
+      if (welcome.length > E.screenCols) {
+        welcome = welcome.substring(0, E.screenCols);
       }
-      let padding = Math.floor((editorConfig.screenCols - welcome.length) / 2);
+      let padding = Math.floor((E.screenCols - welcome.length) / 2);
       if (padding) {
         tildes.push("~");
         padding--;
@@ -90,7 +92,7 @@ function editorDrawRows() {
       tildes.push("~");
     }
     tildes.push(ERASE_IN_LINE_RIGHT);
-    if (i < editorConfig.screenRows - 1) {
+    if (i < E.screenRows - 1) {
       tildes.push("\r\n");
     }
   }
@@ -100,8 +102,12 @@ function editorDrawRows() {
 function editorRefreshScreen() {
   let buffer = appendBuffer(HIDE_CURSOR, CURSOR_POSITION);
   stdout.write(buffer);
+
   editorDrawRows();
-  buffer = appendBuffer(CURSOR_POSITION, SHOW_CURSOR);
+
+  const moveCursor = `\x1b[${E.cy+1};${E.cx+1}H`;
+
+  buffer = appendBuffer(moveCursor, SHOW_CURSOR);
   stdout.write(buffer);
 }
 /**************/
