@@ -1,6 +1,12 @@
 import { exit, stdin, stdout } from "node:process";
 import { inspect } from "node:util";
 
+const editorProcessKeypress = {
+  17: () => {
+    exit(0);
+  },
+};
+
 function main() {
   if (!stdin.isTTY) {
     console.error("No piping.");
@@ -8,9 +14,9 @@ function main() {
   }
 
   stdin.on("data", (data) => {
-    console.log([...data]);
-    if (data.equals(Buffer.from([0x71]))) {
-      exit(0);
+    if (data.length === 1) {
+      (editorProcessKeypress[data[0]] || (() => {}))();
+    } else {
     }
   });
 
