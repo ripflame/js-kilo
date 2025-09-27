@@ -1,10 +1,12 @@
 # Kilo Text Editor in JavaScript
 
-Kilo is a text editor written in C.
-This is a port of the [Kilo editor](https://github.com/akinsho/kilo.nvim) to JavaScript.
+This is a port of the [Kilo editor](https://github.com/antirez/kilo) to JavaScript.
+
+Kilo is a text editor originally written in C.
+
 It is just code kata.
 
-![Kilo](https://github.com/ripflame/js-kilo/blob/main/docs/kilo.png?raw=true)
+![Kilo](https://github.com/ripflame/js-kilo/blob/main/docs/screen.png?raw=true)
 
 ## Usage
 
