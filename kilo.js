@@ -9,7 +9,7 @@ import fs from "node:fs";
 const ERASE_IN_DISPLAY = "\x1b[2J";
 const ERASE_IN_LINE = "\x1b[2K";
 const ERASE_IN_LINE_RIGHT = "\x1b[K";
-const CURSOR_POSITION = "\x1b[H";
+const CURSOR_HOME = "\x1b[H";
 const HIDE_CURSOR = "\x1b[?25l";
 const SHOW_CURSOR = "\x1b[?25h";
 const KILO_VERSION = "0.0.1";
@@ -34,7 +34,7 @@ function getWindowSize() {
 }
 
 function cleanup() {
-  const buffer = appendBuffer(ERASE_IN_LINE, CURSOR_POSITION, SHOW_CURSOR);
+  const buffer = appendBuffer(ERASE_IN_LINE, CURSOR_HOME, SHOW_CURSOR);
   stdout.write(buffer);
   if (stdin.isTTY) stdin.setRawMode(false);
 }
@@ -106,13 +106,14 @@ function editorDrawRows() {
 }
 
 function editorRefreshScreen() {
-  stdout.write(HIDE_CURSOR);
+  let buffer = appendBuffer(HIDE_CURSOR, CURSOR_HOME);
+  stdout.write(buffer);
 
   editorDrawRows();
 
   const moveCursor = `\x1b[${E.cy + 1};${E.cx + 1}H`;
 
-  const buffer = appendBuffer(moveCursor, SHOW_CURSOR);
+  buffer = appendBuffer(moveCursor, SHOW_CURSOR);
   stdout.write(buffer);
 }
 /**************/
