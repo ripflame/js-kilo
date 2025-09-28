@@ -44,10 +44,7 @@ process.on("exit", () => {
 });
 
 process.on("uncaughtException", (error) => {
-  fs.writeSync(
-    process.stderr.fd,
-    `Fatal error: ${error.stack || String(error)}\n`,
-  );
+  fs.writeSync(process.stderr.fd, `Fatal error: ${error.stack || String(error)}\n`);
   cleanup();
   exit(1);
 });
@@ -81,7 +78,7 @@ function editorDrawRows() {
   const tildes = [];
   for (let i = 0; i < E.screenRows; i++) {
     if (i === Math.floor(E.screenRows / 3)) {
-      let welcome = `Kilo editor -- version ${KILO_VERSION}`;
+      let welcome = `JavaScript Kilo editor -- version ${KILO_VERSION}`;
       if (welcome.length > E.screenCols) {
         welcome = welcome.substring(0, E.screenCols);
       }
@@ -120,7 +117,7 @@ function editorRefreshScreen() {
 
 /*** input ***/
 
-const editorProcessKeypress = {
+const processSingleKeypress = {
   17: () => {
     exit(0); // ctrl+q
   },
@@ -137,6 +134,20 @@ const editorProcessKeypress = {
     if (E.cy < E.screenRows - 1) E.cy++; // s
   },
 };
+
+function processControlKeypress(buffer) {
+  if (buffer.equals(Buffer.from("\x1b[A"))) {
+    processSingleKeypress[119]();
+  }
+}
+
+function editorProcessKeypress(buffer) {
+  if (buffer.length === 1) {
+    (processSingleKeypress[buffer[0]] || (() => {}))();
+  } else {
+    processControlKeypress(buffer);
+  }
+}
 /*************/
 
 /*** init ***/
@@ -152,10 +163,7 @@ function main() {
   }
 
   stdin.on("data", (data) => {
-    if (data.length === 1) {
-      (editorProcessKeypress[data[0]] || (() => {}))();
-    } else {
-    }
+    editorProcessKeypress(data);
     editorRefreshScreen();
   });
 
