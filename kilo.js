@@ -13,6 +13,17 @@ const CURSOR_HOME = "\x1b[H";
 const HIDE_CURSOR = "\x1b[?25l";
 const SHOW_CURSOR = "\x1b[?25h";
 const KILO_VERSION = "0.0.1";
+
+const CTRL_Q = "\x11";
+const ARROW_UP = "\x1b[A";
+const ARROW_DOWN = "\x1b[B";
+const ARROW_RIGHT = "\x1b[C";
+const ARROW_LEFT = "\x1b[D";
+const PAGE_UP = "\x1b[5~";
+const PAGE_DOWN = "\x1b[6~";
+const HOME_KEY = "\x1b[1~";
+const END_KEY = "\x1b[4~";
+const DEL_KEY = "\x1b[3~";
 /***************/
 
 /*** data ***/
@@ -117,37 +128,55 @@ function editorRefreshScreen() {
 
 /*** input ***/
 
-const processSingleKeypress = {
-  17: () => {
+const editorProcessKeypress = {
+  [CTRL_Q]: () => {
     exit(0); // ctrl+q
   },
-  97: () => {
-    if (E.cx > 0) E.cx--; // a
+  w: () => {
+    if (E.cy > 0) E.cy--;
   },
-  100: () => {
-    if (E.cx < E.screenCols - 1) E.cx++; // d
+  a: () => {
+    if (E.cx > 0) E.cx--;
   },
-  119: () => {
-    if (E.cy > 0) E.cy--; // w
+  s: () => {
+    if (E.cy < E.screenRows - 1) E.cy++;
   },
-  115: () => {
-    if (E.cy < E.screenRows - 1) E.cy++; // s
+  d: () => {
+    if (E.cx < E.screenCols - 1) E.cx++;
   },
+  [ARROW_UP]: () => {
+    if (E.cy > 0) E.cy--;
+  },
+  [ARROW_LEFT]: () => {
+    if (E.cx > 0) E.cx--;
+  },
+  [ARROW_DOWN]: () => {
+    if (E.cy < E.screenRows - 1) E.cy++;
+  },
+  [ARROW_RIGHT]: () => {
+    if (E.cx < E.screenCols - 1) E.cx++;
+  },
+  [PAGE_UP]: () => {
+    let times = E.screenRows;
+    while (times--) {
+      if (E.cy > 0) E.cy--;
+    }
+  },
+  [PAGE_DOWN]: () => {
+    let times = E.screenRows;
+    while (times--) {
+      if (E.cy < E.screenRows - 1) E.cy++;
+    }
+  },
+  [HOME_KEY]: () => {
+    E.cx = 0;
+  },
+  [END_KEY]: () => {
+    E.cx = E.screenCols - 1;
+  },
+  [DEL_KEY]: () => {},
 };
 
-function processControlKeypress(buffer) {
-  if (buffer.equals(Buffer.from("\x1b[A"))) {
-    processSingleKeypress[119]();
-  }
-}
-
-function editorProcessKeypress(buffer) {
-  if (buffer.length === 1) {
-    (processSingleKeypress[buffer[0]] || (() => {}))();
-  } else {
-    processControlKeypress(buffer);
-  }
-}
 /*************/
 
 /*** init ***/
@@ -163,7 +192,8 @@ function main() {
   }
 
   stdin.on("data", (data) => {
-    editorProcessKeypress(data);
+    const key = data.toString();
+    (editorProcessKeypress[key] || (() => {}))();
     editorRefreshScreen();
   });
 
