@@ -33,8 +33,24 @@ const E = {
   screenCols: 0,
   cx: 0,
   cy: 0,
+  numRows: 0,
+};
+
+const Erow = {
+  size: 0,
+  chars: [],
 };
 /************/
+
+/*** file i/o ***/
+function editorOpen() {
+  const line = "Hello, world!";
+  Erow.size = line.length;
+  Erow.chars = [...line];
+  Erow.chars.push("\0");
+  E.numRows = 1;
+}
+/****************/
 
 /*** terminal ***/
 
@@ -88,23 +104,30 @@ function appendBuffer(...elements) {
 function editorDrawRows() {
   const tildes = [];
   for (let i = 0; i < E.screenRows; i++) {
-    if (i === Math.floor(E.screenRows / 3)) {
-      let welcome = `JavaScript Kilo editor -- version ${KILO_VERSION}`;
-      if (welcome.length > E.screenCols) {
-        welcome = welcome.substring(0, E.screenCols);
-      }
-      let padding = Math.floor((E.screenCols - welcome.length) / 2);
-      if (padding) {
+    if (i >= E.numRows) {
+      if (i === Math.floor(E.screenRows / 3)) {
+        let welcome = `JavaScript Kilo editor -- version ${KILO_VERSION}`;
+        if (welcome.length > E.screenCols) {
+          welcome = welcome.substring(0, E.screenCols);
+        }
+        let padding = Math.floor((E.screenCols - welcome.length) / 2);
+        if (padding) {
+          tildes.push("~");
+          padding--;
+        }
+        while (padding--) {
+          tildes.push(" ");
+        }
+        tildes.push(welcome);
+      } else {
         tildes.push("~");
-        padding--;
       }
-      while (padding--) {
-        tildes.push(" ");
-      }
-      tildes.push(welcome);
     } else {
-      tildes.push("~");
+      const len = Erow.size;
+      if (len > E.screenCols) len = E.screenCols;
+      tildes.push(...Erow.chars);
     }
+
     tildes.push(ERASE_IN_LINE_RIGHT);
     if (i < E.screenRows - 1) {
       tildes.push("\r\n");
@@ -198,6 +221,7 @@ function main() {
   });
 
   initEditor();
+  editorOpen();
   editorRefreshScreen();
   stdin.setRawMode(true);
 }
