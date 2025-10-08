@@ -1,11 +1,10 @@
 /*** includes ***/
-
 import { exit, stdin, stdout } from "node:process";
 import fs from "node:fs";
+import { readFile, open } from "node:fs/promises";
 /****************/
 
 /*** defines ***/
-
 const ERASE_IN_DISPLAY = "\x1b[2J";
 const ERASE_IN_LINE = "\x1b[2K";
 const ERASE_IN_LINE_RIGHT = "\x1b[K";
@@ -43,8 +42,20 @@ const Erow = {
 /************/
 
 /*** file i/o ***/
-function editorOpen() {
-  const line = "Hello, world!";
+async function editorOpen(filename) {
+  let line = "";
+  try {
+    const file = await open(filename);
+    for await (const l of file.readLines()) {
+      console.log("line: ", l);
+      line = l;
+      break;
+    }
+  } catch (err) {
+    console.error(`Error: Reading file >> ${err.message}`);
+    exit(1);
+  }
+
   Erow.size = line.length;
   Erow.chars = [...line];
   Erow.chars.push("\0");
@@ -61,7 +72,7 @@ function getWindowSize() {
 }
 
 function cleanup() {
-  const buffer = appendBuffer(ERASE_IN_LINE, CURSOR_HOME, SHOW_CURSOR);
+  const buffer = appendBuffer(SHOW_CURSOR);
   stdout.write(buffer);
   if (stdin.isTTY) stdin.setRawMode(false);
 }
@@ -105,7 +116,7 @@ function editorDrawRows() {
   const tildes = [];
   for (let i = 0; i < E.screenRows; i++) {
     if (i >= E.numRows) {
-      if (i === Math.floor(E.screenRows / 3)) {
+      if (E.numRows == 0 && i === Math.floor(E.screenRows / 3)) {
         let welcome = `JavaScript Kilo editor -- version ${KILO_VERSION}`;
         if (welcome.length > E.screenCols) {
           welcome = welcome.substring(0, E.screenCols);
@@ -123,9 +134,11 @@ function editorDrawRows() {
         tildes.push("~");
       }
     } else {
-      const len = Erow.size;
-      if (len > E.screenCols) len = E.screenCols;
-      tildes.push(...Erow.chars);
+      if (Erow.size > E.screenCols) {
+        tildes.push(...Erow.chars.slice(0, E.screenCols));
+      } else {
+        tildes.push(...Erow.chars);
+      }
     }
 
     tildes.push(ERASE_IN_LINE_RIGHT);
@@ -208,7 +221,7 @@ function initEditor() {
   getWindowSize();
 }
 
-function main() {
+async function main() {
   if (!stdin.isTTY) {
     console.error("No piping.");
     exit(1);
@@ -221,7 +234,12 @@ function main() {
   });
 
   initEditor();
-  editorOpen();
+
+  if (process.argv.length > 2) {
+    await editorOpen(process.argv[2]);
+  }
+
+
   editorRefreshScreen();
   stdin.setRawMode(true);
 }
