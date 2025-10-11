@@ -11,7 +11,7 @@ const ERASE_IN_LINE_RIGHT = "\x1b[K";
 const CURSOR_HOME = "\x1b[H";
 const HIDE_CURSOR = "\x1b[?25l";
 const SHOW_CURSOR = "\x1b[?25h";
-const KILO_VERSION = "0.0.1";
+const KILO_VERSION = process.env.npm_package_version;
 
 const CTRL_Q = "\x11";
 const ARROW_UP = "\x1b[A";
@@ -34,34 +34,30 @@ const E = {
   cy: 0,
   row: [],
   get numRows() {
-    return this.row.length+1;
+    return this.row.length;
   },
 };
 
-const Erow = {
-  chars: [],
-  get size() {
-    return this.chars.length;
-  },
-};
 /************/
+
+/*** row operations ***/
+function editorAppendRow(line) {
+  E.row.push(line);
+}
+/**********************/
 
 /*** file i/o ***/
 async function editorOpen(filename) {
-  let line = "";
   try {
     const file = await open(filename);
-    for await (const l of file.readLines()) {
-      line = l;
-      break;
+    for await (const line of file.readLines()) {
+      editorAppendRow(line);
     }
   } catch (err) {
     console.error(`Error: Reading file >> ${err.message}`);
     exit(1);
   }
 
-  Erow.chars.push(...line);
-  Erow.chars.push("\0");
 }
 /****************/
 
@@ -117,9 +113,8 @@ function appendBuffer(...elements) {
 function editorDrawRows() {
   const currentLine = [];
   for (let i = 0; i < E.screenRows; i++) {
-    console.log("numRows: ", E.numRows);
     if (i >= E.numRows) {
-      if (E.numRows == 0 && i === Math.floor(E.screenRows / 3)) {
+      if (E.numRows === 0 && i === Math.floor(E.screenRows / 3)) {
         let welcome = `JavaScript Kilo editor -- version ${KILO_VERSION}`;
         if (welcome.length > E.screenCols) {
           welcome = welcome.substring(0, E.screenCols);
@@ -137,10 +132,10 @@ function editorDrawRows() {
         currentLine.push("~");
       }
     } else {
-      if (Erow.size > E.screenCols) {
-        currentLine.push(...Erow.chars.slice(0, E.screenCols));
+      if (E.row[i] > E.screenCols) {
+        currentLine.push(E.row[i].slice(0, E.screenCols));
       } else {
-        currentLine.push(...Erow.chars);
+        currentLine.push(E.row[i]);
       }
     }
 
@@ -149,6 +144,7 @@ function editorDrawRows() {
       currentLine.push("\r\n");
     }
   }
+
   stdout.write(currentLine.join(""));
 }
 
