@@ -1,7 +1,7 @@
 /*** includes ***/
 import { exit, stdin, stdout } from "node:process";
 import fs from "node:fs";
-import { readFile, open } from "node:fs/promises";
+import { open } from "node:fs/promises";
 /****************/
 
 /*** defines ***/
@@ -32,12 +32,17 @@ const E = {
   screenCols: 0,
   cx: 0,
   cy: 0,
-  numRows: 0,
+  row: [],
+  get numRows() {
+    return this.row.length+1;
+  },
 };
 
 const Erow = {
-  size: 0,
   chars: [],
+  get size() {
+    return this.chars.length;
+  },
 };
 /************/
 
@@ -47,7 +52,6 @@ async function editorOpen(filename) {
   try {
     const file = await open(filename);
     for await (const l of file.readLines()) {
-      console.log("line: ", l);
       line = l;
       break;
     }
@@ -56,10 +60,8 @@ async function editorOpen(filename) {
     exit(1);
   }
 
-  Erow.size = line.length;
-  Erow.chars = [...line];
+  Erow.chars.push(...line);
   Erow.chars.push("\0");
-  E.numRows = 1;
 }
 /****************/
 
@@ -113,8 +115,9 @@ function appendBuffer(...elements) {
 /*** output ***/
 
 function editorDrawRows() {
-  const tildes = [];
+  const currentLine = [];
   for (let i = 0; i < E.screenRows; i++) {
+    console.log("numRows: ", E.numRows);
     if (i >= E.numRows) {
       if (E.numRows == 0 && i === Math.floor(E.screenRows / 3)) {
         let welcome = `JavaScript Kilo editor -- version ${KILO_VERSION}`;
@@ -123,30 +126,30 @@ function editorDrawRows() {
         }
         let padding = Math.floor((E.screenCols - welcome.length) / 2);
         if (padding) {
-          tildes.push("~");
+          currentLine.push("~");
           padding--;
         }
         while (padding--) {
-          tildes.push(" ");
+          currentLine.push(" ");
         }
-        tildes.push(welcome);
+        currentLine.push(welcome);
       } else {
-        tildes.push("~");
+        currentLine.push("~");
       }
     } else {
       if (Erow.size > E.screenCols) {
-        tildes.push(...Erow.chars.slice(0, E.screenCols));
+        currentLine.push(...Erow.chars.slice(0, E.screenCols));
       } else {
-        tildes.push(...Erow.chars);
+        currentLine.push(...Erow.chars);
       }
     }
 
-    tildes.push(ERASE_IN_LINE_RIGHT);
+    currentLine.push(ERASE_IN_LINE_RIGHT);
     if (i < E.screenRows - 1) {
-      tildes.push("\r\n");
+      currentLine.push("\r\n");
     }
   }
-  stdout.write(tildes.join(""));
+  stdout.write(currentLine.join(""));
 }
 
 function editorRefreshScreen() {
@@ -238,7 +241,6 @@ async function main() {
   if (process.argv.length > 2) {
     await editorOpen(process.argv[2]);
   }
-
 
   editorRefreshScreen();
   stdin.setRawMode(true);
