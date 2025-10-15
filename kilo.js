@@ -32,9 +32,11 @@ const E = {
   screenCols: 0,
   cx: 0,
   cy: 0,
-  row: [],
+  rowOffset: 0,
+  colOffset: 0,
+  rows: [],
   get numRows() {
-    return this.row.length;
+    return this.rows.length;
   },
 };
 
@@ -42,7 +44,7 @@ const E = {
 
 /*** row operations ***/
 function editorAppendRow(line) {
-  E.row.push(line);
+  E.rows.push(line);
 }
 /**********************/
 
@@ -57,7 +59,6 @@ async function editorOpen(filename) {
     console.error(`Error: Reading file >> ${err.message}`);
     exit(1);
   }
-
 }
 /****************/
 
@@ -113,7 +114,8 @@ function appendBuffer(...elements) {
 function editorDrawRows() {
   const currentLine = [];
   for (let i = 0; i < E.screenRows; i++) {
-    if (i >= E.numRows) {
+    let fileRow = i + E.rowOffset;
+    if (fileRow >= E.numRows) {
       if (E.numRows === 0 && i === Math.floor(E.screenRows / 3)) {
         let welcome = `JavaScript Kilo editor -- version ${KILO_VERSION}`;
         if (welcome.length > E.screenCols) {
@@ -132,10 +134,10 @@ function editorDrawRows() {
         currentLine.push("~");
       }
     } else {
-      if (E.row[i] > E.screenCols) {
-        currentLine.push(E.row[i].slice(0, E.screenCols));
+      if (E.rows[fileRow] > E.screenCols) {
+        currentLine.push(E.rows[fileRow].slice(0, E.screenCols));
       } else {
-        currentLine.push(E.row[i]);
+        currentLine.push(E.rows[fileRow]);
       }
     }
 
@@ -149,16 +151,27 @@ function editorDrawRows() {
 }
 
 function editorRefreshScreen() {
+  editorScroll();
   let buffer = appendBuffer(HIDE_CURSOR, CURSOR_HOME);
   stdout.write(buffer);
 
   editorDrawRows();
 
-  const moveCursor = `\x1b[${E.cy + 1};${E.cx + 1}H`;
+  const moveCursor = `\x1b[${E.cy - E.rowOffset + 1};${E.cx + 1}H`;
 
   buffer = appendBuffer(moveCursor, SHOW_CURSOR);
   stdout.write(buffer);
 }
+
+function editorScroll() {
+  if (E.cy < E.rowOffset) {
+    E.rowOffset = E.cy;
+  }
+  if (E.cy >= E.rowOffset + E.screenRows) {
+    E.rowOffset = E.cy - E.screenRows + 1;
+  }
+}
+
 /**************/
 
 /*** input ***/
@@ -174,22 +187,22 @@ const editorProcessKeypress = {
     if (E.cx > 0) E.cx--;
   },
   s: () => {
-    if (E.cy < E.screenRows - 1) E.cy++;
+    if (E.cy < E.numRows) E.cy++;
   },
   d: () => {
     if (E.cx < E.screenCols - 1) E.cx++;
   },
   [ARROW_UP]: () => {
-    if (E.cy > 0) E.cy--;
+    editorProcessKeypress.w();
   },
   [ARROW_LEFT]: () => {
-    if (E.cx > 0) E.cx--;
+    editorProcessKeypress.a();
   },
   [ARROW_DOWN]: () => {
-    if (E.cy < E.screenRows - 1) E.cy++;
+    editorProcessKeypress.s();
   },
   [ARROW_RIGHT]: () => {
-    if (E.cx < E.screenCols - 1) E.cx++;
+    editorProcessKeypress.d();
   },
   [PAGE_UP]: () => {
     let times = E.screenRows;
