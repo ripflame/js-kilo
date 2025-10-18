@@ -15,9 +15,9 @@ Run `npm start` or `npm run start` to start the editor.
 ## Features
 
 - [x] Navigation with WASD keys
-- [ ] Navigation with arrow keys
+- [x] Navigation with arrow keys
 - [ ] Insert mode
 - [ ] Save file
-- [ ] Load file
+- [x] Load file
 - [ ] Syntax highlighting
 
