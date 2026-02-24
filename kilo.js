@@ -1,10 +1,10 @@
-//{{{ includes
+/*** includes ***/
 import { exit, stdin, stdout } from "node:process";
 import fs from "node:fs";
 import { open } from "node:fs/promises";
-//}}}
+/****************/
 
-//{{{ defines
+/*** defines ***/
 const ERASE_IN_DISPLAY = "\x1b[2J";
 const ERASE_IN_LINE = "\x1b[2K";
 const ERASE_IN_LINE_RIGHT = "\x1b[K";
@@ -23,9 +23,10 @@ const PAGE_DOWN = "\x1b[6~";
 const HOME_KEY = "\x1b[1~";
 const END_KEY = "\x1b[4~";
 const DEL_KEY = "\x1b[3~";
-//}}}
+/***************/
 
-//{{{ data
+/*** data ***/
+
 const E = {
   screenRows: 0,
   screenCols: 0,
@@ -38,15 +39,16 @@ const E = {
     return this.rows.length;
   },
 };
-//}}}
 
-//{{{ row operations
+/************/
+
+/*** row operations ***/
 function editorAppendRow(line) {
   E.rows.push(line);
 }
-//}}}
+/**********************/
 
-//{{{ file i/o
+/*** file i/o ***/
 async function editorOpen(filename) {
   try {
     const file = await open(filename);
@@ -58,9 +60,10 @@ async function editorOpen(filename) {
     exit(1);
   }
 }
-//}}}
+/****************/
 
-//{{{ terminal
+/*** terminal ***/
+
 function getWindowSize() {
   const windowSize = stdout.getWindowSize();
   E.screenCols = windowSize[0];
@@ -97,15 +100,17 @@ process.on("unhandledRejection", () => {
   cleanup();
   exit(1);
 });
-//}}}
+/****************/
 
-//{{{ append buffer
+/*** append buffer ***/
+
 function appendBuffer(...elements) {
   return elements.join("");
 }
-//}}}
+/*********************/
 
-//{{{ output
+/*** output ***/
+
 function editorDrawRows() {
   const currentLine = [];
   for (let i = 0; i < E.screenRows; i++) {
@@ -166,9 +171,11 @@ function editorScroll() {
     E.rowOffset = E.cy - E.screenRows + 1;
   }
 }
-//}}}
 
-//{{{ input
+/**************/
+
+/*** input ***/
+
 const editorProcessKeypress = {
   [CTRL_Q]: () => {
     exit(0); // ctrl+q
@@ -217,9 +224,11 @@ const editorProcessKeypress = {
   },
   [DEL_KEY]: () => {},
 };
-//}}}
 
-//{{{ init
+/*************/
+
+/*** init ***/
+
 function initEditor() {
   getWindowSize();
 }
@@ -245,6 +254,6 @@ async function main() {
   editorRefreshScreen();
   stdin.setRawMode(true);
 }
-//}}}
+/************/
 
 main();
