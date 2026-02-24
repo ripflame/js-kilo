@@ -1,0 +1,10 @@
+Short line one.
+Second line here.
+Third line is also short.
+This is the fourth line and it is intentionally made extremely long so that it extends well beyond the typical terminal width of eighty columns, allowing you to test horizontal scrolling in your kilo text editor. It just keeps going and going and going and going and going and going and going and going and going and going until it is far past any reasonable screen width.
+Fifth line.
+Line six is medium length, not too short but not super long either, just enough to fill a bit.
+Seven.
+Eight.
+Nine.
+Ten - the last line.
