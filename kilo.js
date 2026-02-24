@@ -134,11 +134,7 @@ function editorDrawRows() {
         currentLine.push("~");
       }
     } else {
-      if (E.rows[fileRow] > E.screenCols) {
-        currentLine.push(E.rows[fileRow].slice(0, E.screenCols));
-      } else {
-        currentLine.push(E.rows[fileRow]);
-      }
+      currentLine.push(E.rows[fileRow].slice(0 + E.colOffset, E.screenCols + E.colOffset));
     }
 
     currentLine.push(ERASE_IN_LINE_RIGHT);
@@ -157,7 +153,7 @@ function editorRefreshScreen() {
 
   editorDrawRows();
 
-  const moveCursor = `\x1b[${E.cy - E.rowOffset + 1};${E.cx + 1}H`;
+  const moveCursor = `\x1b[${E.cy - E.rowOffset + 1};${E.cx - E.colOffset + 1}H`;
 
   buffer = appendBuffer(moveCursor, SHOW_CURSOR);
   stdout.write(buffer);
@@ -169,6 +165,12 @@ function editorScroll() {
   }
   if (E.cy >= E.rowOffset + E.screenRows) {
     E.rowOffset = E.cy - E.screenRows + 1;
+  }
+  if (E.cx < E.colOffset) {
+    E.colOffset = E.cx;
+  }
+  if (E.cx >= E.colOffset + E.screenCols) {
+    E.colOffset = E.cx - E.screenCols + 1;
   }
 }
 
@@ -190,7 +192,7 @@ const editorProcessKeypress = {
     if (E.cy < E.numRows) E.cy++;
   },
   d: () => {
-    if (E.cx < E.screenCols - 1) E.cx++;
+    E.cx++;
   },
   [ARROW_UP]: () => {
     editorProcessKeypress.w();
