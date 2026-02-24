@@ -178,21 +178,34 @@ function editorScroll() {
 
 /*** input ***/
 
+const snapCursor = () => {
+  E.cx = Math.min(E.cx, E.rows[E.cy]?.length ?? 0);
+  E.cx = Math.max(E.cx, 0);
+  E.cy = Math.min(E.cy, E.numRows);
+  E.cy = Math.max(E.cy, 0);
+};
+
 const editorProcessKeypress = {
   [CTRL_Q]: () => {
     exit(0); // ctrl+q
   },
   w: () => {
     if (E.cy > 0) E.cy--;
+    snapCursor();
   },
   a: () => {
     if (E.cx > 0) E.cx--;
+    snapCursor();
   },
   s: () => {
     if (E.cy < E.numRows) E.cy++;
+    snapCursor();
   },
   d: () => {
-    E.cx++;
+    if (E.cx < E.rows[E.cy]?.length ?? 0) {
+      E.cx++;
+    }
+    snapCursor();
   },
   [ARROW_UP]: () => {
     editorProcessKeypress.w();
