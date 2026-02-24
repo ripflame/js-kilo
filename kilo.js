@@ -194,7 +194,12 @@ const editorProcessKeypress = {
     snapCursor();
   },
   a: () => {
-    if (E.cx > 0) E.cx--;
+    if (E.cx != 0) {
+      E.cx--;
+    } else if (E.cy > 0) {
+      E.cy--;
+      E.cx = E.rows[E.cy].length;
+    }
     snapCursor();
   },
   s: () => {
@@ -204,6 +209,9 @@ const editorProcessKeypress = {
   d: () => {
     if (E.cx < E.rows[E.cy]?.length ?? 0) {
       E.cx++;
+    } else if (E.cx === E.rows[E.cy]?.length ?? 0) {
+      E.cy++;
+      E.cx = 0;
     }
     snapCursor();
   },
