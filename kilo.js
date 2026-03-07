@@ -12,6 +12,7 @@ const CURSOR_HOME = "\x1b[H";
 const HIDE_CURSOR = "\x1b[?25l";
 const SHOW_CURSOR = "\x1b[?25h";
 const KILO_VERSION = process.env.npm_package_version;
+const KILO_TAB_STOP = 8;
 
 const CTRL_Q = "\x11";
 const ARROW_UP = "\x1b[A";
@@ -43,8 +44,29 @@ const E = {
 /************/
 
 /*** row operations ***/
+function editorUpdateRow(line) {
+  let render = "";
+  for (let i = 0; i < line.length; i++) {
+    if (line[i] === "\t") {
+      for (let j = 0; j < KILO_TAB_STOP; j++) {
+        render = render + " ";
+      }
+    } else {
+      render = render + line[i];
+    }
+  }
+
+  const erow = {
+    line: line,
+    render: render,
+  };
+
+  return erow;
+}
+
 function editorAppendRow(line) {
-  E.rows.push(line);
+  const erow = editorUpdateRow(line);
+  E.rows.push(erow);
 }
 /**********************/
 
@@ -134,7 +156,7 @@ function editorDrawRows() {
         currentLine.push("~");
       }
     } else {
-      currentLine.push(E.rows[fileRow].slice(0 + E.colOffset, E.screenCols + E.colOffset));
+      currentLine.push(E.rows[fileRow].render.slice(E.colOffset, E.screenCols + E.colOffset));
     }
 
     currentLine.push(ERASE_IN_LINE_RIGHT);
@@ -179,7 +201,7 @@ function editorScroll() {
 /*** input ***/
 
 const snapCursor = () => {
-  E.cx = Math.min(E.cx, E.rows[E.cy]?.length ?? 0);
+  E.cx = Math.min(E.cx, E.rows[E.cy]?.line.length ?? 0);
   E.cx = Math.max(E.cx, 0);
   E.cy = Math.min(E.cy, E.numRows);
   E.cy = Math.max(E.cy, 0);
@@ -198,7 +220,7 @@ const editorProcessKeypress = {
       E.cx--;
     } else if (E.cy > 0) {
       E.cy--;
-      E.cx = E.rows[E.cy].length;
+      E.cx = E.rows[E.cy].line.length;
     }
     snapCursor();
   },
@@ -207,9 +229,9 @@ const editorProcessKeypress = {
     snapCursor();
   },
   d: () => {
-    if (E.cx < E.rows[E.cy]?.length ?? 0) {
+    if (E.cx < E.rows[E.cy]?.line.length ?? 0) {
       E.cx++;
-    } else if (E.cx === E.rows[E.cy]?.length ?? 0) {
+    } else if (E.cx === E.rows[E.cy]?.line.length ?? 0) {
       E.cy++;
       E.cx = 0;
     }
