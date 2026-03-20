@@ -13,7 +13,7 @@ const CURSOR_HOME = "\x1b[H";
 const HIDE_CURSOR = "\x1b[?25l";
 const SHOW_CURSOR = "\x1b[?25h";
 const KILO_VERSION = process.env.npm_package_version;
-const KILO_TAB_STOP = 8;
+const KILO_TAB_STOP = 4;
 
 const CTRL_Q = "\x11";
 const ARROW_UP = "\x1b[A";
@@ -277,14 +277,16 @@ const editorProcessKeypress = {
   [PAGE_DOWN]: () => {
     let times = E.screenRows;
     while (times--) {
-      if (E.cy < E.screenRows - 1) E.cy++;
+      if (E.cy < E.numRows - 1) E.cy++;
     }
   },
   [HOME_KEY]: () => {
     E.cx = 0;
   },
   [END_KEY]: () => {
-    E.cx = E.screenCols - 1;
+    if (E.cy < E.numRows) {
+      E.cx = E.rows[E.cy].line.length;
+    }
   },
   [DEL_KEY]: () => {},
 };
