@@ -2,6 +2,7 @@
 import { exit, stdin, stdout } from "node:process";
 import fs from "node:fs";
 import { open } from "node:fs/promises";
+import { inspect } from "node:util";
 /****************/
 
 /*** defines ***/
@@ -33,6 +34,7 @@ const E = {
   screenCols: 0,
   cx: 0,
   cy: 0,
+  rx: 0,
   rowOffset: 0,
   colOffset: 0,
   rows: [],
@@ -44,6 +46,18 @@ const E = {
 /************/
 
 /*** row operations ***/
+function editorRowCxToRx(row, cx) {
+  let rx = 0;
+  for (let character = 0; character < cx; character++) {
+    if (E.rows[row].line[character] === "\t") {
+      rx += KILO_TAB_STOP - 1 - (rx % KILO_TAB_STOP);
+    }
+    rx++;
+  }
+
+  return rx;
+}
+
 function editorUpdateRow(line) {
   let render = "";
   for (let i = 0; i < line.length; i++) {
@@ -175,24 +189,29 @@ function editorRefreshScreen() {
 
   editorDrawRows();
 
-  const moveCursor = `\x1b[${E.cy - E.rowOffset + 1};${E.cx - E.colOffset + 1}H`;
+  const moveCursor = `\x1b[${E.cy - E.rowOffset + 1};${E.rx - E.colOffset + 1}H`;
 
   buffer = appendBuffer(moveCursor, SHOW_CURSOR);
   stdout.write(buffer);
 }
 
 function editorScroll() {
+  E.rx = 0;
+  if (E.cy < E.numRows) {
+    E.rx = editorRowCxToRx(E.cy, E.cx);
+  }
+
   if (E.cy < E.rowOffset) {
     E.rowOffset = E.cy;
   }
   if (E.cy >= E.rowOffset + E.screenRows) {
     E.rowOffset = E.cy - E.screenRows + 1;
   }
-  if (E.cx < E.colOffset) {
-    E.colOffset = E.cx;
+  if (E.rx < E.colOffset) {
+    E.colOffset = E.rx;
   }
-  if (E.cx >= E.colOffset + E.screenCols) {
-    E.colOffset = E.cx - E.screenCols + 1;
+  if (E.rx >= E.colOffset + E.screenCols) {
+    E.colOffset = E.rx - E.screenCols + 1;
   }
 }
 
