@@ -25,6 +25,9 @@ const PAGE_DOWN = "\x1b[6~";
 const HOME_KEY = "\x1b[1~";
 const END_KEY = "\x1b[4~";
 const DEL_KEY = "\x1b[3~";
+const INV_COLR = "\x1b[7m";
+const REV_INV_COLR = "\x1b[m";
+let ONE_SHOT = true;
 /***************/
 
 /*** data ***/
@@ -41,6 +44,7 @@ const E = {
   get numRows() {
     return this.rows.length;
   },
+  filename: "",
 };
 
 /************/
@@ -91,6 +95,7 @@ async function editorOpen(filename) {
     for await (const line of file.readLines()) {
       editorAppendRow(line);
     }
+    E.filename = filename;
   } catch (err) {
     console.error(`Error: Reading file >> ${err.message}`);
     exit(1);
@@ -104,6 +109,7 @@ function getWindowSize() {
   const windowSize = stdout.getWindowSize();
   E.screenCols = windowSize[0];
   E.screenRows = windowSize[1];
+  E.screenRows -= 1;
 }
 
 function cleanup() {
@@ -174,20 +180,20 @@ function editorDrawRows() {
     }
 
     currentLine.push(ERASE_IN_LINE_RIGHT);
-    if (i < E.screenRows - 1) {
-      currentLine.push("\r\n");
-    }
+    currentLine.push("\r\n");
   }
 
   stdout.write(currentLine.join(""));
 }
 
 function editorRefreshScreen() {
+  getWindowSize();
   editorScroll();
   let buffer = appendBuffer(HIDE_CURSOR, CURSOR_HOME);
   stdout.write(buffer);
 
   editorDrawRows();
+  editorDrawStatusBar();
 
   const moveCursor = `\x1b[${E.cy - E.rowOffset + 1};${E.rx - E.colOffset + 1}H`;
 
@@ -213,6 +219,29 @@ function editorScroll() {
   if (E.rx >= E.colOffset + E.screenCols) {
     E.colOffset = E.rx - E.screenCols + 1;
   }
+}
+
+function editorDrawStatusBar() {
+  let buffer = INV_COLR;
+
+  const linesString = ` ${E.numRows < 0 ? "0" : E.numRows} lines`;
+  let filename = E.filename === "" ? "[No Name]" : E.filename;
+  if (E.filename.length > 20) {
+    filename = E.filename.slice(0, 21);
+  }
+  if (filename.length > E.screenCols) {
+    filename = filename.slice(0, E.screenCols + 1);
+  }
+  while (filename.length < E.screenCols - linesString.length) {
+    filename += " ";
+  }
+  filename += linesString;
+  if (filename.length > E.screenCols) {
+    filename = filename.slice(0, E.screenCols);
+  }
+  buffer += filename;
+  buffer += REV_INV_COLR;
+  stdout.write(buffer);
 }
 
 /**************/
@@ -277,7 +306,7 @@ const editorProcessKeypress = {
   [PAGE_DOWN]: () => {
     let times = E.screenRows;
     while (times--) {
-      if (E.cy < E.numRows - 1) E.cy++;
+      if (E.cy < E.numRows) E.cy++;
     }
   },
   [HOME_KEY]: () => {
@@ -308,6 +337,10 @@ async function main() {
   stdin.on("data", (data) => {
     const key = data.toString();
     (editorProcessKeypress[key] || (() => {}))();
+    editorRefreshScreen();
+  });
+
+  stdout.on("resize", () => {
     editorRefreshScreen();
   });
 
